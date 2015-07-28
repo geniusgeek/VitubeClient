@@ -1,0 +1,34 @@
+<android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context=".MainActivity">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/video_listview"/>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fabButton"
+            android:src="@drawable/ic_video"
+            android:layout_gravity="right|bottom"
+            fab:borderWidth="0dp"
+            fab:backgroundTint="@color/accent_color"
+            fab:rippleColor="@color/ripple_color"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </FrameLayout>
+
+
+</android.support.v4.widget.SwipeRefreshLayout>
