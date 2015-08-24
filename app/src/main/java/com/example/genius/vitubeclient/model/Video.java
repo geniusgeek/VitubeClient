@@ -140,18 +140,29 @@ public class Video {
         this.contentType = contentType;
     }
 
+   /* *//**
+     * @return the textual representation of Video object.
+     *//*
+    @Override
+    public String toString() {
+        return "{" +
+                "id: " + id + ", " +
+                "title: " + title + ", " +
+                "duration: " + duration + ", " +
+                "contentType: " + contentType + ", " +
+                "dataURL: " + dataUrl + ", " +
+                "rating:" + ratings +
+                "}";
+    }*/
     /**
      * @return the textual representation of Video object.
      */
     @Override
     public String toString() {
         return "{" +
-                "Id: " + id + ", " +
-                "Title: " + title + ", " +
-                "Duration: " + duration + ", " +
-                "ContentType: " + contentType + ", " +
-                "Data URL: " + dataUrl + "," +
-                "Ratings:" + ratings +
+                 "title:\"" + title + "\", " +
+                "duration:" + duration + ", " +
+                "contentType:\"" + contentType + "\" " +
                 "}";
     }
 

@@ -21,7 +21,7 @@ import retrofit.mime.TypedFile;
  * interactions.  The interface is annotated with Retrofit annotations
  * to send Requests and automatically convert the Video.
  */
-public interface VideoServiceProxy {
+public interface VideoServiceProxy{
     /**
      * Used as Request Parameter for Video data.
      */

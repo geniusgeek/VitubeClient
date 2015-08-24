@@ -19,9 +19,9 @@ public interface MediatorInterface {
     int REQUEST_DOWNLOAD = 1;
     int REQUEST_RATE = 2;
 
-    void uploadVideo(int requestCode,Context context, Uri requestUri);
+    void uploadVideo(int requestCode,Context context, Uri requestUri );
 
-    void downloadVideo(int requestCode, Context context, Video video);
+    void downloadVideo(int requestCode, Context context, Video video );
 
     double rateVideo(int requestCode, Video video, double rating);
 

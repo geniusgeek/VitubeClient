@@ -12,6 +12,8 @@ import android.provider.BaseColumns;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 
+import java.io.File;
+
 /** This is a vidoe utility class that s reponsile for handling all the video related generic operations.
  * This plays the role of  a singleton class in the singleton pattern.
  * Created by Genius on 7/21/2015.
@@ -98,6 +100,9 @@ public class VideoFileUtils {
             // File
         else if ("file".equalsIgnoreCase(uri.getScheme()))
             return uri.getPath();
+        else{
+            return Uri.fromFile(new File(uri.toString())).getPath() ;
+        }
 
         return null;
     }

@@ -55,7 +55,7 @@ public class VideoListActivity extends GenericActivity<VideoOps.ListViewOps<Vide
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState, VideoOpsImpl.class, this);
 
-        innitializeViewsAndSetListeners();
+
 
         IntentFilter filter= new IntentFilter(DownloadIntentService.ACTION_DOWNLOAD_COMPLETE);
         filter.addAction(UploadIntentService.ACTION_UPLOAD_COMPLETE);
@@ -65,9 +65,8 @@ public class VideoListActivity extends GenericActivity<VideoOps.ListViewOps<Vide
 
 
 
-    private void innitializeViewsAndSetListeners() {
-        System.out.println("innitializing views");
-        // Get weak reference to the ListView for displaying the results  entered.
+    public void innitializeViewsAndSetListeners() {
+         // Get weak reference to the ListView for displaying the results  entered.
         mListView=new WeakReference<>((ListView) findViewById(R.id.video_listview));
         mFab=new WeakReference<>((FloatingActionButton) findViewById(R.id.fabButton));
         //set the click listener for the listview
@@ -131,12 +130,11 @@ public class VideoListActivity extends GenericActivity<VideoOps.ListViewOps<Vide
 
     @Override
     public void setAdapterData(List<?> dataList) {
-        Utils.showToast(this,"data gotten"+dataList);
-         VideoAdapter mVideoAdapter= (VideoAdapter) getAdapter();
+          VideoAdapter mVideoAdapter= (VideoAdapter) getAdapter();
         if(mVideoAdapter==null)
-            mVideoAdapter= new VideoAdapter(this);
+            mVideoAdapter= new VideoAdapter(this.getApplicationContext());
          mVideoAdapter.setVideos((List<Video>) dataList);
-        // setAdapter(mVideoAdapter);
+         setAdapter(mVideoAdapter);
     }
 
     @Override
@@ -246,7 +244,8 @@ public class VideoListActivity extends GenericActivity<VideoOps.ListViewOps<Vide
        Intent intent=new Intent();
        intent.setAction(Intent.ACTION_GET_CONTENT);//get the content for instant access,
        //intent.setData(MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
-       intent.setType("video/*");//set the type of the resource to retrieve
+        //intent.setType("video/*");
+       intent.setDataAndType(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,"video/*");//set the type of the resource to retrieve
        return intent;
     }
 

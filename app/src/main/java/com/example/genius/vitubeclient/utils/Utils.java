@@ -120,8 +120,14 @@ public class Utils {
             activity.setResult(Activity.RESULT_OK);
     }
 
-    public static boolean  checkConnectionStatus(Context context,String ip){
-        int response=0;
+    /**
+     * check connection status of the client and the server
+     * Please note that this method should never be called on the ui thread
+     * @param ip
+     * @return
+     */
+    public static boolean  checkConnectionStatus(String ip){
+
         try{
             URL url= new URL(ip);
             HttpURLConnection  httpUrlConnection= (HttpURLConnection) url.openConnection();
@@ -129,13 +135,14 @@ public class Utils {
             httpUrlConnection.setInstanceFollowRedirects(true);
             httpUrlConnection.setRequestMethod("GET");
             httpUrlConnection.connect();
-            response= httpUrlConnection.getResponseCode();
+            int response= httpUrlConnection.getResponseCode();
             if(response == HttpURLConnection.HTTP_OK)
              return true;
         }catch(Exception ex){
             ex.printStackTrace();
 
         }
+        //something bad happened
         return false;
 
     }

@@ -4,17 +4,20 @@ import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.example.genius.vitubeclient.model.Video;
-import com.example.genius.vitubeclient.model.VideoMessageWrapperFacade;
 import com.example.genius.vitubeclient.model.mediator.webendpoint.VideoServiceProxy;
 import com.example.genius.vitubeclient.model.mediator.webendpoint.VideoStatus;
 import com.example.genius.vitubeclient.presenter.VideoOps;
 import com.example.genius.vitubeclient.utils.Constants;
 import com.example.genius.vitubeclient.utils.Utils;
+
+import retrofit.RestAdapter;
 
 /**
  * Created by Genius on 7/20/2015.
@@ -28,10 +31,33 @@ public abstract class GenericDownloadUploadService extends IntentService {
     protected int requestCode;
     private String mDownloadUploadMessage="";
     protected VideoServiceProxy mVideoApi;
-    protected VideoMessageWrapperFacade mVideoMessageWrapperFacade;
     protected NotificationManager mNotificationManager;
     private NotificationCompat.Builder mBuilder;
     private int NOTIFICATION_ID=1;
+    public static final int MSG_UPLOAD=1;
+    public static final int MSG_DOWNLOAD=2;
+   // protected Messenger mMessenger;
+
+   /*  class  ApiMessageHandler extends Handler {
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_UPLOAD:
+                    doActionUpload(msg);
+                    break;
+                case MSG_DOWNLOAD:
+                    doActionDownload(msg);
+                    break;
+                default:
+                    super.handleMessage(msg);
+            }
+
+        }
+    }*/
+
+    abstract   void doAction(Intent intent);
+
 
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
@@ -40,8 +66,7 @@ public abstract class GenericDownloadUploadService extends IntentService {
      */
     public GenericDownloadUploadService(String name) {
         super(name);
-        mVideoMessageWrapperFacade = new VideoMessageWrapperFacade();
-    }
+     }
 
     @Override
     public void onCreate() {
@@ -53,8 +78,27 @@ public abstract class GenericDownloadUploadService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        if(!Utils.checkConnectionStatus(this, Constants.WEB_ENDPOINT))
+        if(!Utils.checkConnectionStatus(Constants.VIDEO_POINT)){
+            Handler mHandler= new Handler(Looper.getMainLooper());
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Utils.showToast(getApplicationContext(), "not connected to the server");
+                }
+            });
+
             return;
+        }
+        if(mVideoApi==null)
+            createVideoApi();
+        doAction(intent);
+    }
+
+    private void createVideoApi() {
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint(Constants.WEB_ENDPOINT)
+                .build();
+        mVideoApi = restAdapter.create(VideoServiceProxy.class);
     }
 
     /**
@@ -102,7 +146,7 @@ public abstract class GenericDownloadUploadService extends IntentService {
                 .setProgress (0,
                         0,
                         false)
-                .setSmallIcon(android.R.drawable.stat_sys_upload_done)
+                .setSmallIcon(getNOTIFICATION_ID()==1?android.R.drawable.stat_sys_upload_done:android.R.drawable.stat_sys_download_done)
                 .setContentText("")
                 .setTicker(status);
 
@@ -123,7 +167,7 @@ public abstract class GenericDownloadUploadService extends IntentService {
                 .Builder(this)
                 .setContentTitle(title)
                 .setContentText(text)
-                .setSmallIcon(android.R.drawable.stat_sys_upload)
+                .setSmallIcon(getNOTIFICATION_ID()==1?android.R.drawable.stat_sys_upload:android.R.drawable.stat_sys_download)
                 .setTicker(ticker)
                 .setProgress(0,
                         0,

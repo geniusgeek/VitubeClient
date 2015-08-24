@@ -3,10 +3,8 @@ package com.example.genius.vitubeclient.model.mediator;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Message;
 
 import com.example.genius.vitubeclient.model.Video;
-import com.example.genius.vitubeclient.model.VideoMessageWrapperFacade;
 import com.example.genius.vitubeclient.model.mediator.webendpoint.VideoServiceProxy;
 import com.example.genius.vitubeclient.presenter.services.DownloadIntentService;
 import com.example.genius.vitubeclient.presenter.services.UploadIntentService;
@@ -53,31 +51,22 @@ public class VideoServiceMediator implements MediatorInterface {
 
         if(requestCode!=REQUEST_UPLOAD)
             throw new IllegalArgumentException("wrong request code passed for this operation");
-        VideoMessageWrapperFacade message = getMessage();
-        Intent intent= UploadIntentService.makeIntent(context, requestCode, requestUri, message);
+
+        Intent intent= UploadIntentService.makeIntent(context, requestCode, requestUri);
         context.startService(intent);
 
     }
 
-    /**
-     * Factory method to get the message which is encapsulated with the videoApi to be sent to the service to execute
-     * the download or upload operation
-     * @return
-     */
-    private VideoMessageWrapperFacade getMessage() {
-        VideoMessageWrapperFacade message=new VideoMessageWrapperFacade(new Message());
-        message.setApiObject(videoApi);
-        return message;
-    }
 
     @Override
-    public synchronized void downloadVideo(int requestCode, Context context, Video video) {
+    public synchronized void downloadVideo(int requestCode, Context context, Video video ) {
 
         if(requestCode!=REQUEST_DOWNLOAD)
             throw new IllegalArgumentException("wrong request code passed for this operation");
-        VideoMessageWrapperFacade message = getMessage();
-        Intent intent= DownloadIntentService.makeIntent(context, requestCode, video, message);
+       // VideoMessageWrapperFacade message = getMessage();
+        Intent intent= DownloadIntentService.makeIntent(context, requestCode, video);
         context.startService(intent);
+
     }
 
 

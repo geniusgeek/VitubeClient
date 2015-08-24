@@ -15,8 +15,7 @@ import java.util.List;
  * Created by Genius on 7/20/2015.
  */
 public interface VideoOps extends GenericAsyncTaskOps<Void,Integer,List<Video>>,ConfigurableOps<VideoOps.ListViewOps<VideoAdapter>> {
-
-    /**
+     /**
      * called when the app is shutting down, thereby carrying out necessary cleanup
      * operations. such as stashing download for restoration etc
      */

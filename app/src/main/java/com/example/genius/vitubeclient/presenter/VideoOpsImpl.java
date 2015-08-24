@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -21,16 +22,25 @@ import com.example.genius.vitubeclient.view.ui.VideoAdapter;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by Genius on 7/20/2015.
  */
 public class VideoOpsImpl implements ListView.OnItemClickListener , VideoOps, ResultRecieved {
 
+    private String TAG=getClass().getSimpleName();
+
     private RetainedFragmentManager mRetainedFragmentManager;
+
+    private ExecutorService mExecutorService= Executors.newFixedThreadPool(5);
+    private List<Video> mVideoList;
 
     private GenericAsyncTask<Void,Integer,List<Video>,VideoOps> mAsyncTask;
 
+    private volatile boolean mConnectionStatus=false;
 
     WeakReference<ListViewOps> mActivityView;
     /**
@@ -51,7 +61,7 @@ public class VideoOpsImpl implements ListView.OnItemClickListener , VideoOps, Re
      * No ops OpsImpl for Ops.newInstance()
      */
     public VideoOpsImpl() {
-
+             mVideoServiceMediator = new VideoServiceMediator();//create an instance of the videoservice mediator
     }
 
 
@@ -62,18 +72,24 @@ public class VideoOpsImpl implements ListView.OnItemClickListener , VideoOps, Re
      * @param asyncTask
      */
     private void updateUiWithAsync(GenericAsyncTask<Void,Integer,List<Video>, VideoOps> asyncTask) {
-        getActivityView().setAdapterData(asyncTask.getStashedResult());
+        Log.d(TAG,"updating ui with previous async task");
+        getActivityView().setAdapterData(asyncTask.getStashedResult());//get the stashed result if any
         asyncTask.cancel(true);
+        //asyncTask=null;
     }
 
 
     /**
-     * get video kust from the server
+     * get video list from the server,
+     * please note that this synchronous operation must be called in a background thread, thereby improving the responsiveness of the app
      * @return
      */
      public List<Video> getVideoList() {
-        return mVideoServiceMediator.getVideoList();
-    }
+         if(mVideoList==null)
+            return mVideoServiceMediator.getVideoList();
+         else
+             return mVideoList;
+     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -86,11 +102,11 @@ public class VideoOpsImpl implements ListView.OnItemClickListener , VideoOps, Re
     public void onConfiguration(ListViewOps listViewOps, boolean firstTimeIn) {
         mActivityView = new WeakReference<>(listViewOps); //update the reference to the view(ie the activity)
         mRetainedFragmentManager= ((VideoListActivity)getActivityView()).getRetainedFragmentManager();//gethe fragment manager for the activity
-        if(mVideoServiceMediator==null)
-             mVideoServiceMediator = new VideoServiceMediator();
+        ((VideoListActivity)getActivityView()).innitializeViewsAndSetListeners();
         if(firstTimeIn){
-            VideoAdapter videoAdapter= new VideoAdapter((Context) getActivityView());
+             VideoAdapter videoAdapter= new VideoAdapter((Context) getActivityView());
             listViewOps.setAdapter(videoAdapter);
+
             updateUi();//update the ui for the listview
         }
 
@@ -112,6 +128,7 @@ public class VideoOpsImpl implements ListView.OnItemClickListener , VideoOps, Re
             else
                 updateUi();//if the ui did not finish updating then redo
         }
+       // mRetainedFragmentManager.remove(GenericAsyncTask.TAG);//TODo please enable this when you have a contentProvider
     }
 
     ListViewOps getActivityView() {
@@ -140,7 +157,7 @@ public class VideoOpsImpl implements ListView.OnItemClickListener , VideoOps, Re
 
             String realPathFromURI= VideoFileUtils.getRealPathFromURI((Context) getActivityView(), videoUri);
 
-            mVideoServiceMediator.uploadVideo(MediatorInterface.REQUEST_UPLOAD,((Context) getActivityView()).getApplicationContext(),Uri.parse(realPathFromURI));
+            mVideoServiceMediator.uploadVideo(MediatorInterface.REQUEST_UPLOAD,((Context) getActivityView()).getApplicationContext(),Uri.parse(realPathFromURI) );
         }
         //check for uploading video
 
@@ -171,34 +188,48 @@ public class VideoOpsImpl implements ListView.OnItemClickListener , VideoOps, Re
      */
     @Override
     public List<Video> doInBackground(Void... params) {
-        if(!Utils.checkConnectionStatus((Context) getActivityView(), Constants.WEB_ENDPOINT))
+          try {
+            mConnectionStatus= (boolean) mExecutorService.submit(mCallable).get();
+        } catch (Exception e) {
+            e.printStackTrace();
+              mConnectionStatus=false;
+        }
+         if(!mConnectionStatus)
             return null;
-
-        return  getVideoList();
+         return  getVideoList();
     }
 
+    Callable mCallable= new Callable<Boolean>() {
+        @Override
+        public Boolean call() throws Exception {
+            return Utils.checkConnectionStatus(Constants.VIDEO_POINT);
+        }
+    };
 
     @Override
     public void onPostExecute(List<Video> videos) {
-        if(videos==null){
+         if(!mConnectionStatus && videos==null){
             Utils.showToast(((Context) getActivityView()),"please connect to the server");
 
             ((VideoListActivity) getActivityView()).finish();
-        }
+        }else{
+             mVideoList=videos;
+             getActivityView().setAdapterData(videos);
+             mAsyncTask.cancel(true);//cancel the asynctasktrue;
+             // mAsyncTask=null;
+         }
+        Log.d(TAG, "connection status is"+mConnectionStatus+"result gotten"+videos);
 
-        getActivityView().setAdapterData(videos);
-        mAsyncTask.cancel(true);//cancel the asynctasktrue;
-        Utils.showToast((Context) getActivityView(), "result gotten"+videos);
 
     }
 
 
 
     public void updateUi(){
-
+        Log.d(TAG,"updating ui/redoing async");
         mAsyncTask= new GenericAsyncTask(this);
-        mAsyncTask.execute();
-    }
+        mAsyncTask.executeOnExecutor(GenericAsyncTask.THREAD_POOL_EXECUTOR);
+     }
 
     @Override
     public void onDestroy() {
@@ -207,4 +238,6 @@ public class VideoOpsImpl implements ListView.OnItemClickListener , VideoOps, Re
             mRetainedFragmentManager.put(GenericAsyncTask.TAG,mAsyncTask);//put the asynctask to continue the execution
         }
     }
+
+
 }

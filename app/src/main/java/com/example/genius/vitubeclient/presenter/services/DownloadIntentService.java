@@ -1,15 +1,10 @@
 package com.example.genius.vitubeclient.presenter.services;
 
 import android.annotation.SuppressLint;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Message;
 
 import com.example.genius.vitubeclient.model.Video;
-import com.example.genius.vitubeclient.model.VideoMessageWrapperFacade;
-import com.example.genius.vitubeclient.utils.Constants;
-import com.example.genius.vitubeclient.utils.Utils;
 import com.example.genius.vitubeclient.utils.VideoStorageUtils;
 
 import retrofit.client.Response;
@@ -27,21 +22,18 @@ public class DownloadIntentService  extends GenericDownloadUploadService{
      */
     public DownloadIntentService( ) {
         super("DownloadIntentService");
-        setNOTIFICATION_ID(1);//set the notification Id
+        setNOTIFICATION_ID(MSG_DOWNLOAD);//set the notification Id
+
     }
 
-    @SuppressLint("NewApi")
     @Override
-    protected void onHandleIntent(Intent intent) {
-        super.onHandleIntent(intent);
-        Message message=intent.getParcelableExtra(API_PROXY);//get the message
-        mVideoApi= mVideoMessageWrapperFacade.getApiObjectForMessage(message);
-        startNotification("video download","download in progress","downloading video");
+    protected void doAction(Intent intent) {
         int videoId=intent.getIntExtra(VIDEO_ID,0);
         String videoTitle=intent.getStringExtra(VIDEO_NAME);
+        startNotification("video download","download in progress","downloading video");
         Response response=mVideoApi.getData(videoId);
         boolean status=VideoStorageUtils.storeVideo(response,this,videoTitle);
-        finishNotification(status?"video download successful":"video download unsuccesful");
+        finishNotification(status ? "video download successful" : "video download unsuccesful");
         if(status){
             //start broadcast reciever to notify the activity to refresh the content, greyify the download button
             sendLocalBroadcast(ACTION_DOWNLOAD_COMPLETE, videoId);
@@ -49,21 +41,29 @@ public class DownloadIntentService  extends GenericDownloadUploadService{
         }
     }
 
+    @SuppressLint("NewApi")
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        super.onHandleIntent(intent);
+
+    }
+
+
+
+
 
     /**
      * Factory method for creating intent to download a video
      * @param context
      * @param requestCode
      * @param video
-     * @param api
-     * @return
+      * @return
      */
-    public static Intent makeIntent(Context context,int requestCode ,Video video,VideoMessageWrapperFacade api){
+    public static Intent makeIntent(Context context,int requestCode ,Video video ){
         Intent intent = new Intent(context,DownloadIntentService.class);
         intent.putExtra(REQUEST_CODE, requestCode);
-        intent.putExtra(API_PROXY,api.getMessage());
         intent.putExtra(VIDEO_ID, video.getId());
-        intent.putExtra(VIDEO_NAME,video.getTitle());
+         intent.putExtra(VIDEO_NAME,video.getTitle());
         return intent;
     }
 

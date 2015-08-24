@@ -70,19 +70,14 @@ public class VideoAdapter extends BaseAdapter {
             convertView.setTag(viewHolder);
 
             viewHolder.videoImageView=(ImageView) convertView.findViewById(R.id.video_thumbnail_imageview);
-            new Thread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
+
                             Picasso.with(mContext)
                                     .load(video.getDataUrl())
                                     .placeholder(R.drawable.ic_thumbnail_placeholder)
                                     .error(R.drawable.ic_thumbnail_placeholder)
                                     .resize(120,120)//resize the thumbnail
                                     .into( viewHolder.videoImageView);
-                        }
-                    }
-            ).start();
+
 
             viewHolder.titleTextView = (TextView) convertView.findViewById(R.id.video_title_textview);
              viewHolder.ratingTextView = (TextView) convertView.findViewById(R.id.video_rating_textview);
@@ -108,8 +103,8 @@ public class VideoAdapter extends BaseAdapter {
             }
         });
         viewHolder.titleTextView.setText(video.getTitle());
-        viewHolder.ratingTextView.setText(String.valueOf(video.getRatings()));
-        viewHolder.durationTextView.setText(String.valueOf(video.getDuration()));
+        viewHolder.ratingTextView.setText("Ratings:"+ String.valueOf(video.getRatings()));
+        viewHolder.durationTextView.setText(String.valueOf(video.getDuration())+" min");
 
         return convertView;
     }

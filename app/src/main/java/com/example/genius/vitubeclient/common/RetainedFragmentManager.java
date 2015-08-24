@@ -107,6 +107,14 @@ public class RetainedFragmentManager {
     }
 
     /**
+     * remote an item from the  retainedFragment
+     * @param key
+     */
+    public void remove(String key){
+        mRetainedFragment.remove(key);
+    }
+
+    /**
      * Get the object with @a key.
      */
     @SuppressWarnings("unchecked")
@@ -178,6 +186,10 @@ public class RetainedFragmentManager {
             put(object.getClass().getName(), object);
         }
 
+
+        public void remove(String key){
+            mData.remove(key);
+        }
         /**
          * Get the object with @a key.
          */

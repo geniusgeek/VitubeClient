@@ -1,6 +1,8 @@
 package com.example.genius.vitubeclient.common;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -33,6 +35,7 @@ public abstract class GenericActivity<Interface, OpsType extends ConfigurableOps
      * @param opsType            Class object that's used to create an operations
      *                           ("Ops") object.
      */
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     protected void onCreate(Bundle savedInstanceState,
                          Class<OpsType> opsType,
                          Interface instance) {
